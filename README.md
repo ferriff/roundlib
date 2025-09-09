@@ -4,14 +4,50 @@ A header‑only `C++` library to round and format for display a measured value a
 
 The library currently implements the Particle Data Group rounding algorithm and a fixed two-digit precision algorithm. 
 
-Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed. The total error, when used, is computed minimizing numerical errors and assuming that all errors are uncorrelated, i.e., it is the quadrature sum of the individual errors, symmetrized with the average.
+Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed. The total uncertainty, when used, is computed minimizing numerical uncertainties and assuming that all uncertainties are uncorrelated, i.e., it is the quadrature sum of the individual uncertainties, symmetrized with the average.
 
 Supported display modes are `terminal`, `(La)TeX`, `typst`, `gnuplot`.
 
 A simple executable is also provided, to format numbers from the command line.
 
 
-## Usage
+## Structure
+
+The library exposes few API functions for basic common use cases.
+
+### Format standard `C++` types
+```
+template<typename V, typename E>
+inline std::string format(const V& val, const E& err,
+                          const format_options &opt = {})
+{ /* ... */ }
+```
+where the inputs are any scalar or container whose elements are string‑like (`std::string`, `const char*`, `std::string_view`) or numeric‑like (`int`, `float`, `double`, etc.). The central value (`val`) and the error term(s) (`err`) may be of different types and may be supplied either as a single value or as a standard container (e.g. std::vector<double>, std::list<std::string>).
+
+### Format already converted arguments
+```cpp
+inline std::string format_numbers(number value, std::vector<number>& errors,
+                          const format_options &opt = {})
+{ /* ... */ }
+```
+where `rounder::number` holds the central value, `std::vector<rounder::number>` contains the error terms, and optionally `format_options` specify the options different from the default. Standard `C++` types can be converted to `number` via an implicit constructor or three helper functions:
+```
+static number from_numeric(const T v, int sgn = 0)
+{ /* ... */ }
+
+static number from_string(std::string_view sv)
+{ /* ... */ }
+
+static number from_anything(const T& v, int sgn = 0)
+{ /* ... */ }
+
+```
+In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric error (`sgn = 0`), a higher (`sgn = +1`), or lower (`sgn = -1`) uncertainty. This parameter is only necessary for numeric-like types, as for string-like it is deduced by the sign of the provided value.
+
+The final formatting is regulated via different options, provided either as members of the `format_options` structure or as single-letter knobs for the specialization of `fmt`.
+
+
+## Examples of usage
 
 ### Library (`roundlib.hpp`)
 
@@ -25,12 +61,12 @@ Generic example using `number` and the `format` function of `roundlib` (more opt
 
 // ... more code
 
-rounder::format_options opts;
 std::string_view val = "27.462";
 
 // multiple errors, some asymmetric
 std::vector<std::string_view> errors = {".3234", "+.2864", "-.124", "0.023"};
 std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
+rounder::format_options opts;
 opts.labels = &labels;
 fmt::print("{}", rounder::format(val, errors, opts));
 
