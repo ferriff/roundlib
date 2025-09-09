@@ -53,6 +53,7 @@ int main(int argc, char** argv)
         std::string_view val;
         std::vector<std::string_view> errors;
         std::vector<std::string_view> labels;
+        bool trailing_newline = true;
         for (int i = 1; i < argc; ++i) {
                 const char* c = argv[i];
                 if (is_number(c) && !from_stdin) {
@@ -75,6 +76,9 @@ int main(int argc, char** argv)
                         case 'e': // round to the total error (quadrature sum of the others, assuming them uncorrelated)
                                 opts.prec_to_total_err = true;
                                 break;
+                        case 'l': // round to the larger error
+                                opts.prec_to_larger_err = true;
+                                break;
                         case 'p': // PDG rounding
                                 opts.algo = rounder::format_options::round_algo::pdg;
                                 break;
@@ -87,9 +91,6 @@ int main(int argc, char** argv)
                         // case 'v': // verbose
                         //         _o |= kVerbose;
                         //         break;
-                        case 'w': // round to the larger error
-                                opts.prec_to_larger_err = true;
-                                break;
                         case 'D': // multiply with cdot instead of times
                                 opts.cdot = true;
                                 break;
@@ -105,7 +106,7 @@ int main(int argc, char** argv)
                                 // opts.labels = std::move(parse_list(argv[++i]));
                                 break;
                         case 'N': // trailing new line
-                                opts.trailing_newline = false;
+                                trailing_newline = false;
                                 break;
                         case 'T': // typst
                                 opts.mode = rounder::mode_type::typst;
@@ -121,6 +122,7 @@ int main(int argc, char** argv)
                                 break;
                 }
         }
-        fmt::print("{}", rounder::format(val, errors, opts));
+        if (trailing_newline) fmt::println("{}", rounder::format(val, errors, opts));
+        else fmt::print("{}", rounder::format(val, errors, opts));
         return 0;
 }

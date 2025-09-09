@@ -410,9 +410,8 @@ struct format_options {
         unsigned prec_to_larger_err : 1;
         unsigned factorize_powers   : 1;
         unsigned no_utf8            : 1;
-        unsigned trailing_newline   : 1;
         unsigned cdot               : 1;
-        unsigned _reserved          : 1; // pad to 1 byte
+        unsigned _reserved          : 2; // pad to 1 byte
 
         constexpr format_options()
         : mode(mode_type::terminal),
@@ -420,10 +419,9 @@ struct format_options {
           labels(),
           symmetrize_errors(0),
           prec_to_total_err(0),
-          prec_to_larger_err(0),
+          prec_to_larger_err(1),
           factorize_powers(0),
           no_utf8(0),
-          trailing_newline(1),
           cdot(0),
           _reserved(0) {}
 };
@@ -489,9 +487,6 @@ class formatter {
                                 out += symbols().cc;
                         }
                 }
-
-                // optional line break
-                if (opt_.trailing_newline) out += '\n';
                 return out;
         }
 
@@ -598,7 +593,7 @@ namespace rounder {
 
 // value + multiple errors (signed +/- for upper/lower, unsigned for symmetric)
 inline std::string format_numbers(number value, std::vector<number>& errors,
-                          const format_options &opt = {})
+                          const format_options& opt = {})
 {
         detail::round(value, errors, opt);
         formatter fmt(opt);
@@ -657,7 +652,6 @@ struct fmt::formatter<rounder::measurement> {
 
                 opts_.algo = rounder::format_options::round_algo::twodigits;
                 opts_.prec_to_total_err = true;
-                opts_.trailing_newline  = false;
                 while (i != end && *i != '}') {
                         switch (*i) {
                         case 'c': // 2‑digit precision, rounded to total (quadrature) error
@@ -667,6 +661,9 @@ struct fmt::formatter<rounder::measurement> {
                         case 'e': // round to the total (quadrature) error
                                 opts_.prec_to_total_err = true;
                                 break;
+                        case 'l': // round to the larger error
+                                opts_.prec_to_larger_err = true;
+                                break;
                         case 'p': // PDG rounding
                                 opts_.algo = rounder::format_options::round_algo::pdg;
                                 break;
@@ -675,9 +672,6 @@ struct fmt::formatter<rounder::measurement> {
                                 break;
                         case 't': // round to two significant digits
                                 opts_.algo = rounder::format_options::round_algo::twodigits;
-                                break;
-                        case 'w': // round to the larger error
-                                opts_.prec_to_larger_err = true;
                                 break;
                         case 'D': // use “·” (cdot) instead of “×”
                                 opts_.cdot = true;
