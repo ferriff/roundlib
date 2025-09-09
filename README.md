@@ -21,19 +21,19 @@ There is a dependency either on the `fmt` library or on its header-only version.
 
 Generic example using a measurement and the specialization for the `fmt` library.
 ```cpp
-        rounder::format_options opts;
-        std::string_view val = "27.462";
-        std::vector<std::string_view> errors = {".3234", "+.2864", "-.124", "0.023"};
-        std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
-		opts.labels = &labels;
-        fmt::print("{}", rounder::format(val, errors, opts));
+rounder::format_options opts;
+std::string_view val = "27.462";
+std::vector<std::string_view> errors = {".3234", "+.2864", "-.124", "0.023"};
+std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
+opts.labels = &labels;
+fmt::print("{}", rounder::format(val, errors, opts));
 ```
 
 Generic example using a measurement and the specialization for the `fmt` library.
 ```cpp
-        double more_syst = 0.456;
-        rounder::measurement m{27.462, {.3234, {.2864, +1}, {.124, -1}, {0.023}, more_syst}, {"(stat)", "(syst)", "(theo)", "(more)"}};
-        fmt::println("{:tlT}", m);
+double more_syst = 0.456;
+rounder::measurement m{27.462, {.3234, {.2864, +1}, {.124, -1}, {0.023}, more_syst}, {"(stat)", "(syst)", "(theo)", "(more)"}};
+fmt::println("{:tlT}", m);
 ```
 
 #### Executable (`round`)
