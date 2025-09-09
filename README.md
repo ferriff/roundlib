@@ -19,18 +19,32 @@ Just include the header `roundlib.hpp` in your favourite `C++` program.
 
 There is a dependency either on the `fmt` library or on its header-only version. The latter case can be activated by uncommenting a line in both `round.cc` and `roundlib.hpp`.
 
-Generic example using a measurement and the specialization for the `fmt` library.
+Generic example using `number` and the `format` function of `roundlib` (more options are used in `round.cc`):
 ```cpp
+#include "roundlib.hpp"
+
+// ... more code
+
 rounder::format_options opts;
 std::string_view val = "27.462";
+
+// multiple errors, some asymmetric
 std::vector<std::string_view> errors = {".3234", "+.2864", "-.124", "0.023"};
 std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
 opts.labels = &labels;
 fmt::print("{}", rounder::format(val, errors, opts));
+
+// single error, simple printing
+std::string_view err = "0.321";
+fmt::print("{}", rounder::format(val, error));
 ```
 
-Generic example using a measurement and the specialization for the `fmt` library.
+Generic example using a measurement and the specialization for the `fmt` library:
 ```cpp
+#include "roundlib.hpp"
+
+// ... more code
+
 double more_syst = 0.456;
 rounder::measurement m{27.462, {.3234, {.2864, +1}, {.124, -1}, {0.023}, more_syst}, {"(stat)", "(syst)", "(theo)", "(more)"}};
 fmt::println("{:tlT}", m);
