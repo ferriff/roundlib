@@ -65,7 +65,7 @@ int main(int argc, char** argv)
                         case '\0': // read from standard input
                                 from_stdin = 1;
                                 break;
-                        case 'c': // convention of the CMS Collaboration: 2 digits on the total error, rounded to the smallest number of decimal points
+                        case 'c': // combined: 2 digits, rounded to the largest uncertainties
                                 opts.algo = rounder::format_options::round_algo::twodigits;
                                 opts.prec_to_total_err = true;
                                 break;
