@@ -119,14 +119,5 @@ int main(int argc, char** argv)
                 }
         }
         fmt::print("{}", rounder::format(val, errors, opts));
-
-        rounder::number v = rounder::number::from_string(val);
-        std::vector<rounder::number> e;
-        for (auto& el : errors) e.emplace_back(rounder::number::from_string(el));
-        fmt::println("{:tlT}", rounder::measurement{v, e});
-
-        double more_syst = 0.456;
-        rounder::measurement m{27.462, {.3234, {.2864, +1}, {.124, -1}, {0.023}, more_syst}, {"(stat)", "(syst)", "(theo)", "(more)"}};
-        fmt::println("{:tlT}", m);
         return 0;
 }
