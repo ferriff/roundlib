@@ -11,7 +11,58 @@ Supported display modes are `terminal`, `(La)TeX`, `typst`, `gnuplot`.
 A simple executable is also provided, to format numbers from the command line.
 
 
-## Structure
+## TL;DR
+
+For the impatient user:
+
+```fish
+> ./round -t -l 27.432 2.134 0.125 -L "(stat),(syst)"
+27.4 ± 2.1 (stat) ± 0.1 (syst)
+
+> ./round_main -t -e -X 27.462 +0.3134 -0.292 0.0124 -L "(stat),(syst),(theo)"
+27.46 \,^{+0.31} _{-0.29} \text{(stat)} \pm 0.01 \text{(syst)}  
+```
+
+For the impatient coder:
+
+```cpp
+#include "roundlib.hpp"
+#include <fmt/format.h>
+
+int main()
+{
+        std::string_view central = "27.462";
+        double even_more_syst = 0.456;
+        rounder::measurement m{central, // central value
+            // the uncertainties, given as a std::vector of `number's
+            // implicitly constructed from `double`s,
+            // with indications if upper (+1) or lower (-1) uncertainty
+            {.3234, {.2064, +1}, {.194, -1}, {0.023}, even_more_syst},
+            // an (optional) std::vector<std::string_view> indicating the labels to display
+            // for the systematic uncertainties
+            {"(stat)", "(syst)", "(theo)", "(more)"}};
+
+        // round to two significant digits (t),
+        // uniformize the precision to the largest uncertainty (l)
+        // display in typst mode
+        fmt::println("{:tlT}", m);
+
+        // round with the PDG algorithm (p),
+        // uniformize the precision to the total uncertainty (l),
+        // symmetrize upper/lower uncertainty if within +/-10% (s),
+        // display in (La)TeX mode (X)
+        auto s = fmt::format("{:pesX}", m);
+        fmt::println("{}", s);
+        return 0;
+}
+```
+Output:
+```
+27.46  plus.minus  0.32 "(stat)" #h(0.0em)^(+0.21) _(-0.19) "(syst)"  plus.minus  0.02 "(theo)"  plus.minus  0.46 "(more)"
+27.5 \pm 0.3 \text{(stat)} \pm 0.2 \text{(syst)} \pm 0.0 \text{(theo)} \pm 0.5 \text{(more)}
+```
+
+## Library structure
 
 The library exposes few API functions for basic common use cases.
 
@@ -54,46 +105,77 @@ In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric un
 The final formatting is regulated via different options, provided either as members of the `format_options` structure or as single-letter knobs for the specialization of `fmt`.
 
 
-## Examples of usage
+## Usage
 
 ### Library (`roundlib.hpp`)
 
 Just include the header `roundlib.hpp` in your favourite `C++` program.
 
-There is a dependency either on the `fmt` library or on its header-only version. The latter case can be activated by uncommenting a line in both `round.cc` and `roundlib.hpp`.
+There is a dependency on the `fmt` library, either the `.so` or the header-only version. The latter case can be activated by uncommenting a line at the beginning of `roundlib.hpp`.
 
-Generic example using `number` and the `format` function of `roundlib` (more options are used in `round.cc`):
+The `TL;DR` example uses the provided specialization of `fmt::formatter`.
+Generic examples showing more features and the `format` function of `roundlib`:
 ```cpp
 #include "roundlib.hpp"
+#include <fmt/format.h>
 
-// ... more code
+int main()
+{
+        // labels for the uncertainties (optional)
+        std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
+        rounder::format_options opts;
+        opts.prec_to_larger_err = true;
+        opts.algo = rounder::format_options::round_algo::twodigits;
+        opts.mode = rounder::mode_type::terminal;
+        opts.labels = &labels;
 
-std::string_view val = "27.462";
+        // central value as a string_view
+        std::string_view val = "27.462";
+        // multiple uncertainties as string_view, some asymmetric
+        std::vector<std::string_view> errors = {".324", "+.286", "-.124", "0.0234"};
+        // format the numbers
+        std::string out = rounder::format(val, errors, opts);
 
-// multiple errors, some asymmetric
-std::vector<std::string_view> errors = {".3234", "+.2864", "-.124", "0.023"};
-std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
-rounder::format_options opts;
-opts.labels = &labels;
-fmt::print("{}", rounder::format(val, errors, opts));
+        // central value as a double
+        double dval = 27.462;
+        // uncertainties (symmetric only) as double
+        std::vector<double> derrors = {.3234, .2864, .124, 0.0234};
+        std::string d_out = rounder::format(dval, derrors, opts);
 
-// single error, simple printing
-std::string_view err = "0.321";
-fmt::print("{}", rounder::format(val, error));
+        // central value as `number`
+        rounder::number nval = "0.27462";
+        // uncertainties (symmetric) as `number`
+        std::vector<rounder::number> nerrors = {.003234, {.002864, +1}, {.00124, -1}, 0.000234};
+        opts.factorize_powers = true;
+        std::string n_out = rounder::format_numbers(nval, nerrors, opts);
+
+        // can also mix types, if need be
+        std::string m_out = rounder::format(val, derrors, opts);
+
+        fmt::println("{}", out);
+        fmt::println("{}", d_out);
+        fmt::println("{}", n_out);
+        fmt::println("{}", m_out);
+
+        // single error, direct printing
+        std::string_view err = "0.321";
+        fmt::println("{}", rounder::format(dval, err));
+        return 0;
+}
 ```
-
-Generic example using a measurement and the specialization for the `fmt` library:
-```cpp
-#include "roundlib.hpp"
-
-// ... more code
-
-double more_syst = 0.456;
-rounder::measurement m{27.462, {.3234, {.2864, +1}, {.124, -1}, {0.023}, more_syst}, {"(stat)", "(syst)", "(theo)", "(more)"}};
-fmt::println("{:tlT}", m);
+Output:
+```
+27.46 ± 0.32 (stat) +0.29 -0.12 (syst) ± 0.02 (theo)
+27.46 ± 0.32 (stat) ± 0.29 (syst) ± 0.12 (theo) ± 0.02 (more)
+(2746 ± 32 (stat) +29 -12 (syst) ± 2 (theo))×10^-4
+(2746 ± 32 (stat) ± 29 (syst) ± 12 (theo) ± 2 (more))×10^-2
+27.46 ± 0.32
 ```
 
 ### Executable (`round`)
 
-Clone the repository, `cd` into it and `make`. The `Makefile` is for `clang++`, change to `g++` or other compilers you may be using.
-The executable depends on `fmt`, which is available for many platforms as a normal or header-only library. The `Makefile` currently links to `fmt`, but this can be trivially changed.
+Clone the repository, `cd` into it and `make`.
+
+The `Makefile` compiles with `clang++` and link to `fmt` as only dependence.
+
+The formatting library `fmt` is available for many platforms as a standard or a header-only library. Change the `Makefile` and uncomment one lines at the beginning of `roundlib.hpp` and `round.cc` if the header-only version of `fmt` is preferred.
