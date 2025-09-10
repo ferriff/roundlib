@@ -53,6 +53,9 @@ int main(int argc, char** argv)
         std::vector<std::string_view> errors;
         std::vector<std::string_view> labels;
         bool trailing_newline = true;
+        // defaults
+        opts.algo                = rounder::format_options::round_algo::pdg;
+        opts.prec_to_largest_err = true;
         for (int i = 1; i < argc; ++i) {
                 const char* c = argv[i];
                 if (is_number(c) && !from_stdin) {
@@ -70,13 +73,13 @@ int main(int argc, char** argv)
                                 break;
                         case 'c': // combined: 2 digits, rounded to the largest uncertainties
                                 opts.algo = rounder::format_options::round_algo::twodigits;
-                                opts.prec_to_total_err = true;
+                                opts.prec_to_largest_err = true;
                                 break;
                         case 'e': // round to the total error (quadrature sum of the others, assuming them uncorrelated)
                                 opts.prec_to_total_err = true;
                                 break;
                         case 'l': // round to the larger error
-                                opts.prec_to_larger_err = true;
+                                opts.prec_to_largest_err = true;
                                 break;
                         case 'p': // PDG rounding
                                 opts.algo = rounder::format_options::round_algo::pdg;

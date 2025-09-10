@@ -404,13 +404,13 @@ struct format_options {
         const std::vector<std::string_view>* labels;
 
         // bit-like fields, defaults in the constructor below
-        unsigned symmetrize_errors  : 1;
-        unsigned prec_to_total_err  : 1;
-        unsigned prec_to_larger_err : 1;
-        unsigned factorize_powers   : 1;
-        unsigned no_utf8            : 1;
-        unsigned cdot               : 1;
-        unsigned _reserved          : 2; // pad to 1 byte
+        unsigned symmetrize_errors   : 1;
+        unsigned prec_to_total_err   : 1;
+        unsigned prec_to_largest_err : 1;
+        unsigned factorize_powers    : 1;
+        unsigned no_utf8             : 1;
+        unsigned cdot                : 1;
+        unsigned _reserved           : 2; // pad to 1 byte
 
         constexpr format_options()
         : mode(mode_type::terminal),
@@ -418,7 +418,7 @@ struct format_options {
           labels(),
           symmetrize_errors(0),
           prec_to_total_err(0),
-          prec_to_larger_err(1),
+          prec_to_largest_err(1),
           factorize_powers(0),
           no_utf8(0),
           cdot(0),
@@ -554,7 +554,7 @@ inline void round(number& central, std::vector<number>& errors, const format_opt
                 prec = tote.p;
         }
 
-        if (opt.prec_to_larger_err) {
+        if (opt.prec_to_largest_err) {
                 // match the precision of the central value to that of the less precise error
                 prec = INT_MIN;
                 if (opt.algo == format_options::round_algo::pdg) {
@@ -646,11 +646,12 @@ struct fmt::formatter<rounder::measurement> {
 
         constexpr auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
         {
-                auto i  = ctx.begin();
+                auto i   = ctx.begin();
                 auto end = ctx.end();
 
-                opts_.algo = rounder::format_options::round_algo::twodigits;
-                opts_.prec_to_total_err = true;
+                // default
+                opts_.algo = rounder::format_options::round_algo::pdg;
+                opts_.prec_to_largest_err = true;
                 while (i != end && *i != '}') {
                         switch (*i) {
                         case 'c': // 2‑digit precision, rounded to total (quadrature) error
@@ -661,7 +662,7 @@ struct fmt::formatter<rounder::measurement> {
                                 opts_.prec_to_total_err = true;
                                 break;
                         case 'l': // round to the larger error
-                                opts_.prec_to_larger_err = true;
+                                opts_.prec_to_largest_err = true;
                                 break;
                         case 'p': // PDG rounding
                                 opts_.algo = rounder::format_options::round_algo::pdg;
@@ -711,6 +712,7 @@ struct fmt::formatter<rounder::measurement> {
         auto format(const rounder::measurement& m, fmt_context& ctx) const -> decltype(ctx.out())
         {
                 if (m.labels.size()) opts_.labels = &m.labels;
+                // copy not to alter the initial measurement
                 rounder::measurement mm(m);
                 std::string txt = rounder::format_numbers(m.central, mm.errors, opts_);
                 return fmt::format_to(ctx.out(), "{}", txt);
