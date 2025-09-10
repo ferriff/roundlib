@@ -30,8 +30,7 @@
 #include <type_traits>
 #include <vector>
 
-// uncomment the following line if you wish to remain header-only also with fmt
-// #define FMT_HEADER_ONLY
+// line if you wish to remain header-only also with fmt, compile with `-DFMT_HEADER_ONLY`
 #include <fmt/format.h>
 
 namespace rounder {

@@ -146,7 +146,7 @@ The final formatting is regulated via different options, provided as members of 
 
 Just include the header `roundlib.hpp` in your favourite `C++` program.
 
-`roundlib` depends on the [fmt](https://github.com/fmtlib/fmt) library, either from the `.so` or from the header-only version. The latter case can be chosen by uncommenting a line at the beginning of `roundlib.hpp`.
+`roundlib` depends on the [fmt](https://github.com/fmtlib/fmt) library, either from the `.so` or from the header-only version. The latter case can be chosen by compiling your code defining the variable `FMT_HEADER_ONLY`, e.g. `clang++ -DFMT_HEADER_ONLY ...`.
 
 The `TL;DR` example already show how to use the specialization of `fmt::formatter`.
 
@@ -214,4 +214,4 @@ Clone the repository, `cd` into it and `make`.
 
 The `Makefile` compiles with `clang++` and link to `fmt` as only dependence.
 
-The [fmt](https://github.com/fmtlib/fmt) formatting library is available for many platforms as a standard or a header-only library. Change the `Makefile` and uncomment one lines at the beginning of `roundlib.hpp` and `round.cc` if the header-only version of [fmt](https://github.com/fmtlib/fmt) is preferred.
+The [fmt](https://github.com/fmtlib/fmt) formatting library is available for many platforms as a standard or a header-only library. Compile with `make HEADER_ONLY=1` if you prefer to use the header-only version of [fmt](https://github.com/fmtlib/fmt).
