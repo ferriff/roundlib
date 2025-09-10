@@ -67,7 +67,41 @@ Output:
 
 ## Library structure
 
-The library exposes few API functions for basic common use cases. The only dependency beside the standard `C++` library is from the [fmt](https://github.com/fmtlib/fmt) formatting library.
+The library exposes two types and few API functions for basic common use cases. The only dependency beside the standard `C++` library is from the [fmt](https://github.com/fmtlib/fmt) formatting library.
+
+
+### `number` and `measurement` types
+
+A `number` is a decimal representation of a number, with an additional parameter specifying if it is a central value or a symmetric uncertainty, or an asymmetric uncertainty.
+
+Standard `C++` types can be converted to `number` via an implicit constructor, e.g.,
+```cpp
+rounder::number n = 1.23;       // central value or symmetric uncertainty
+rounder::number n = {0.13, -1}; // asymmetric uncertainty, lower part
+rounder::number n = "+0.14";    // asymmetric uncertainty, higher part
+```
+or via three explicit helper functions:
+```cpp
+static number from_numeric(const T v, int sgn = 0)
+{ /* ... */ }
+
+static number from_string(std::string_view sv)
+{ /* ... */ }
+
+static number from_anything(const T& v, int sgn = 0)
+{ /* ... */ }
+```
+In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric uncertainty (`sgn = 0`), a higher (`sgn = +1`), or a lower (`sgn = -1`) uncertainty. For string-like types, `sgn` is deduced from the sign of the provided value (none, `+`, `-`).
+
+
+A `measurement` is a basic representation of a measurement: central value, associated errors, and labels specifying what the errors are, e.g., statistical, systematic, theoretical, etc. It is constructed via the standard `C++` constructors for a `struct`.
+```cpp
+struct measurement {
+        rounder::number central;
+        std::vector<rounder::number> errors;
+        std::vector<std::string_view> labels;
+};
+```
 
 
 
@@ -90,37 +124,15 @@ inline std::string format_numbers(number value, std::vector<number>& errors,
 ```
 where `rounder::number` holds the central value, `std::vector<rounder::number>` contains the error terms, and optionally `format_options` specify the options different from the default.
 
-Standard `C++` types can be converted to `number` via an implicit constructor, e.g.,
-```cpp
-rounder::number n = 1.23;       // central value or symmetric uncertainty
-rounder::number n = {0.13, -1}; // asymmetric uncertainty, lower part
-rounder::number n = "+0.14";    // asymmetric uncertainty, higher part
-```
-or via three explicit helper functions:
-```cpp
-static number from_numeric(const T v, int sgn = 0)
-{ /* ... */ }
-
-static number from_string(std::string_view sv)
-{ /* ... */ }
-
-static number from_anything(const T& v, int sgn = 0)
-{ /* ... */ }
-```
-In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric uncertainty (`sgn = 0`), a higher (`sgn = +1`), or a lower (`sgn = -1`) uncertainty. For string-like types, `sgn` is deduced from the sign of the provided value (none, `+`, `-`).
-
 
 
 ### Format a `measurement` using the `fmt::formatter` specialization
-The `rounder::measurement` structure holds the central value, its associated uncertainties, and the optional labels for the uncertainties:
+
+The provided specialization of `fmt::formatter` rounds a measurement and its uncertainties according to a sensible default or to optional parsing flags:
 ```cpp
-struct measurement {
-        rounder::number central;
-        std::vector<rounder::number> errors;
-        std::vector<std::string_view> labels;
-};
+rounder::measurement m = {central_value, {error}};
+fmt::print("{}", m);
 ```
-The provided specialization of `fmt::formatter` round a measurement and its uncertainties according to the parsing options provided.
 
 
 
