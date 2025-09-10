@@ -2,7 +2,7 @@
 
 A header‑only `C++` library to round and format for display the central value of a measurement and its associated uncertainties.
 
-The library currently implements the [Particle Data Group (PDG)](https://pdg.lbl.gov/2025/web/viewer.html?file=../reviews/rpp2024-rev-rpp-intro.pdf#subsection.0.5.3) rounding algorithm and a fixed two-digit precision algorithm. 
+The library currently implements the [Particle Data Group (PDG)](https://pdg.lbl.gov/2025/web/viewer.html?file=../reviews/rpp2024-rev-rpp-intro.pdf#subsection.0.5.3) rounding algorithm and a fixed two-digits precision algorithm. 
 
 Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed. The total uncertainty, when used, is computed minimizing numerical errors and assuming that all uncertainties are uncorrelated, i.e., it is the quadrature sum of the individual uncertainties, symmetrized with the average if asymmetric.
 
@@ -120,7 +120,7 @@ The provided specialization of `fmt::formatter` round a measurement and its unce
 
 ### Options
 
-The final formatting is regulated via different options, provided as members of the `format_options` structure in the code, or as single-letter knobs for the specialization of `fmt::formatter`, or as command-line options for the `round` executable. Here is a list of them along with a brief explanation. For clarity most of the namespaces are omitted.
+The final formatting is regulated via different options, provided as members of the `format_options` structure for code, or as single-letter knobs for the specialization of `fmt::formatter`, or as command-line options for the `round` executable. The available options are listed below, where most of the namespaces are omitted for compactness.
 
 | `rounder::format_options` | `fmt::formatter` | `round` (command-line) | Description                                                  |
 | ---                       | ---              | ---                    | ---                                                          |
@@ -129,7 +129,7 @@ The final formatting is regulated via different options, provided as members of 
 | `mode = typst`            | `T`              | `-T`                   | display for `typst` syntax (math mode)                       |
 | `mode = gnuplot`          | `G`              | `-G`                   | display for `gnuplot` syntax                                 |
 | `algo = pdg`              | `p`              | `-p`                   | round with the PDG algorithm                                 |
-| `algo = twodigits`        | `t`              | `-t`                   | round to two-digit precision                                 |
+| `algo = twodigits`        | `t`              | `-t`                   | round to two-digits precision                                |
 | `symmetrize_errors`       | `s`              | `-s`                   | symmetrize asymmetric errors if they differ by less than 10% |
 | `prec_to_total_err`       | `e`              | `-e`                   | uniformize the precision to the rounding of the total error  |
 | `prec_to_larger_err`      | `l`              | `-l`                   | uniformize the precision to the largest supplied error       |
