@@ -212,6 +212,6 @@ Output:
 
 Clone the repository, `cd` into it and `make`.
 
-The `Makefile` compiles with `clang++` and link to `fmt` as only dependence.
+The following compilers are tried in order: `CXX=...` as provided from the command line, `clang++`, `g++`. The compiler links to `fmt`, the only dependence.
 
-The [fmt](https://github.com/fmtlib/fmt) formatting library is available for many platforms as a standard or a header-only library. Compile with `make HEADER_ONLY=1` if you prefer to use the header-only version of [fmt](https://github.com/fmtlib/fmt).
+The [fmt](https://github.com/fmtlib/fmt) formatting library is available for many platforms as a standard library or as a header-only library. Compile with `make HEADER_ONLY=1` if you prefer to use the header-only version.
