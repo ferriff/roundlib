@@ -1,5 +1,5 @@
-/* Header‑only rounding library, to round and format in usual scientific forms
- * used in publications a measurement and its errors.
+/* Header‑only library to round and format in publication style
+ * the central value of a measurement and its associated uncertainties.
  *
  * Copyright © 2025 Federico Ferri (federico.ferri@cea.fr)
  *
