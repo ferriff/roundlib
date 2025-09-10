@@ -11,6 +11,7 @@ Supported display modes are `terminal`, `(La)TeX`, `typst`, `gnuplot`.
 A simple executable is also provided, to format numbers from the command line.
 
 
+
 ## TL;DR
 
 For the impatient user:
@@ -62,9 +63,13 @@ Output:
 27.5 \pm 0.3 \text{(stat)} \pm 0.2 \text{(syst)} \pm 0.0 \text{(theo)} \pm 0.5 \text{(more)}
 ```
 
+
+
 ## Library structure
 
 The library exposes few API functions for basic common use cases.
+
+
 
 ### Format numbers provided as standard `C++` types
 ```cpp
@@ -74,6 +79,8 @@ inline std::string format(const V& val, const E& err,
 { /* ... */ }
 ```
 where the inputs are any scalar or container whose elements are string‑like (`std::string`, `const char*`, `std::string_view`) or numeric‑like (`int`, `float`, `double`, etc.). The central value (`val`) and the error term(s) (`err`) may be of different types and may be supplied either as a single value or as a standard container (e.g. std::vector<double>, std::list<std::string>).
+
+
 
 ### Format numbers provided via the `number` type
 ```cpp
@@ -96,13 +103,40 @@ static number from_anything(const T& v, int sgn = 0)
 ```
 In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric uncertainty (`sgn = 0`), a higher (`sgn = +1`), or a lower (`sgn = -1`) uncertainty. This parameter is only necessary for numeric-like types, as for string-like types it is deduced from the sign of the provided value.
 
+
+
 ### Format a `measurement` using the `fmt::formatter` specialization
+The `rounder::measurement` structure holds the central value, its associated uncertainties, and the optional labels for the uncertainties:
+```cpp
+struct measurement {
+        rounder::number central;
+        std::vector<rounder::number> errors;
+        std::vector<std::string_view> labels;
+};
+```
+The provided specialization of `fmt::formatter` round a measurement and its uncertainties according to the parsing options provided.
 
 
 
 ### Options
 
-The final formatting is regulated via different options, provided either as members of the `format_options` structure or as single-letter knobs for the specialization of `fmt`.
+The final formatting is regulated via different options, provided as members of the `format_options` structure in the code, or as single-letter knobs for the specialization of `fmt::formatter`, or as command-line options for the `round` executable. Here is a list of them along with a brief explanation:
+
+| `rounder::format_options` | `fmt::formatter` | `round` (command-line) | Description |
+| --- | --- | --- | --- |
+| `mode = terminal` |
+| `mode = tex` |
+| `mode = typst` |
+| `mode = gnuplot` |
+| `algo = pdg` |
+| `algo = twodigits` |
+| symmetrize_errors  |
+| prec_to_total_err  |
+| prec_to_larger_err |
+| factorize_powers   |
+| no_utf8            |
+| cdot               |
+
 
 
 ## Usage
@@ -113,8 +147,9 @@ Just include the header `roundlib.hpp` in your favourite `C++` program.
 
 There is a dependency on the `fmt` library, either the `.so` or the header-only version. The latter case can be activated by uncommenting a line at the beginning of `roundlib.hpp`.
 
-The `TL;DR` example uses the provided specialization of `fmt::formatter`.
-Generic examples showing more features and the `format` function of `roundlib`:
+The `TL;DR` example already show how to use the specialization of `fmt::formatter`.
+
+Additional examples showing more features and the `format` function of `roundlib`:
 ```cpp
 #include "roundlib.hpp"
 #include <fmt/format.h>
