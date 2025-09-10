@@ -1,12 +1,12 @@
 # roundlib
 
-A header‑only `C++` library to round and format for display a measured value and its associated uncertainties.
+A header‑only `C++` library to round and format for display the central value of a measurement and its associated uncertainties.
 
-The library currently implements the Particle Data Group rounding algorithm and a fixed two-digit precision algorithm. 
+The library currently implements the [Particle Data Group (PDG)](https://pdg.lbl.gov/2025/web/viewer.html?file=../reviews/rpp2024-rev-rpp-intro.pdf#subsection.0.5.3) rounding algorithm and a fixed two-digit precision algorithm. 
 
 Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed. The total uncertainty, when used, is computed minimizing numerical errors and assuming that all uncertainties are uncorrelated, i.e., it is the quadrature sum of the individual uncertainties, symmetrized with the average if asymmetric.
 
-Supported display modes are `terminal`, `(La)TeX`, `typst`, `gnuplot`.
+Supported display modes are `terminal`, [(La)TeX](https://www.latex-project.org/), [typst](https://typst.app/), [gnuplot](http://gnuplot.info/).
 
 A simple executable is also provided, to format numbers from the command line.
 
@@ -20,7 +20,7 @@ For the impatient user:
 > ./round -t -l 27.432 2.134 0.125 -L "(stat),(syst)"
 27.4 ± 2.1 (stat) ± 0.1 (syst)
 
-> ./round_main -t -e -X 27.462 +0.3134 -0.292 0.0124 -L "(stat),(syst),(theo)"
+> ./round -t -e -X 27.462 +0.3134 -0.292 0.0124 -L "(stat),(syst),(theo)"
 27.46 \,^{+0.31} _{-0.29} \text{(stat)} \pm 0.01 \text{(syst)}  
 ```
 
@@ -67,7 +67,7 @@ Output:
 
 ## Library structure
 
-The library exposes few API functions for basic common use cases.
+The library exposes few API functions for basic common use cases. The only dependency beside the standard `C++` library is from the [fmt](https://github.com/fmtlib/fmt) formatting library.
 
 
 
@@ -146,7 +146,7 @@ The final formatting is regulated via different options, provided as members of 
 
 Just include the header `roundlib.hpp` in your favourite `C++` program.
 
-There is a dependency on the `fmt` library, either the `.so` or the header-only version. The latter case can be activated by uncommenting a line at the beginning of `roundlib.hpp`.
+`roundlib` depends on the [fmt](https://github.com/fmtlib/fmt) library, either from the `.so` or from the header-only version. The latter case can be chosen by uncommenting a line at the beginning of `roundlib.hpp`.
 
 The `TL;DR` example already show how to use the specialization of `fmt::formatter`.
 
@@ -214,4 +214,4 @@ Clone the repository, `cd` into it and `make`.
 
 The `Makefile` compiles with `clang++` and link to `fmt` as only dependence.
 
-The formatting library `fmt` is available for many platforms as a standard or a header-only library. Change the `Makefile` and uncomment one lines at the beginning of `roundlib.hpp` and `round.cc` if the header-only version of `fmt` is preferred.
+The [fmt](https://github.com/fmtlib/fmt) formatting library is available for many platforms as a standard or a header-only library. Change the `Makefile` and uncomment one lines at the beginning of `roundlib.hpp` and `round.cc` if the header-only version of [fmt](https://github.com/fmtlib/fmt) is preferred.
