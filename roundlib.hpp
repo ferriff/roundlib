@@ -400,7 +400,7 @@ enum class mode_type { terminal, tex, typst, gnuplot };
 
 struct format_options {
         mode_type mode;
-        enum class round_algo {pdg, twodigits, cms};
+        enum class round_algo {pdg, twodigits};
         round_algo algo;
         const std::vector<std::string_view>* labels;
 
