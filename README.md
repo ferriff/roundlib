@@ -90,7 +90,13 @@ inline std::string format_numbers(number value, std::vector<number>& errors,
 ```
 where `rounder::number` holds the central value, `std::vector<rounder::number>` contains the error terms, and optionally `format_options` specify the options different from the default.
 
-Standard `C++` types can be converted to `number` via an implicit constructor or three helper functions:
+Standard `C++` types can be converted to `number` via an implicit constructor, e.g.,
+```cpp
+rounder::number n = 1.23;       // central value or symmetric uncertainty
+rounder::number n = {0.13, -1}; // asymmetric uncertainty, lower part
+rounder::number n = "+0.14";    // asymmetric uncertainty, higher part
+```
+or via three explicit helper functions:
 ```cpp
 static number from_numeric(const T v, int sgn = 0)
 { /* ... */ }
@@ -101,7 +107,7 @@ static number from_string(std::string_view sv)
 static number from_anything(const T& v, int sgn = 0)
 { /* ... */ }
 ```
-In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric uncertainty (`sgn = 0`), a higher (`sgn = +1`), or a lower (`sgn = -1`) uncertainty. This parameter is only necessary for numeric-like types, as for string-like types it is deduced from the sign of the provided value.
+In case of an uncertainty, the parameter `sgn` regulates if it is a symmetric uncertainty (`sgn = 0`), a higher (`sgn = +1`), or a lower (`sgn = -1`) uncertainty. For string-like types, `sgn` is deduced from the sign of the provided value (none, `+`, `-`).
 
 
 
