@@ -120,7 +120,7 @@ The provided specialization of `fmt::formatter` round a measurement and its unce
 
 ### Options
 
-The final formatting is regulated via different options, provided as members of the `format_options` structure for code, or as single-letter knobs for the specialization of `fmt::formatter`, or as command-line options for the `round` executable. The available options are listed below, where most of the namespaces are omitted for compactness.
+The final formatting is regulated via different options, provided as members of the `format_options` structure for code, or as single-letter knobs for the specialization of `fmt::formatter`, or as command-line options for the `round` executable. The available options are listed below, where most of the namespaces are omitted for compactness. Capital letters are for display options, lowercase letters for algorithmic options.
 
 | `rounder::format_options` | `fmt::formatter` | `round` (command-line) | Description                                                  |
 | ---                       | ---              | ---                    | ---                                                          |
@@ -136,7 +136,7 @@ The final formatting is regulated via different options, provided as members of 
 | `factorize_powers`        | `F`              | `-F`                   | display with factorized powers of 10                         |
 | `no_utf8`                 | `U`              | `-U`                   | do not use `utf8` chars when displaying to the terminal      |
 | `cdot`                    | `D`              | `-D`                   | use a cdot instead of times symbol for the powers of 10      |
-|                           |  -               | `-N`                   | do not include the trailing new line                         |
+| -                         |  -               | `-N`                   | do not include the trailing new line                         |
 
 
 
