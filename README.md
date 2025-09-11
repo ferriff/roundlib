@@ -4,7 +4,9 @@ A header‑only `C++` library to round and format for display the central value 
 
 The library currently implements the [Particle Data Group (PDG)](https://pdg.lbl.gov/2025/web/viewer.html?file=../reviews/rpp2024-rev-rpp-intro.pdf#subsection.0.5.3) rounding algorithm and a fixed two-digits precision algorithm. 
 
-Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed. The total uncertainty, when used, is computed minimizing numerical errors and assuming that all uncertainties are uncorrelated, i.e., it is the quadrature sum of the individual uncertainties, symmetrized with the average if asymmetric.
+Numbers can be provided in (hopefully!) any standard string-like and numeric-like `C++` type. Rounding is performed with integer arithmetic, ensuring no information loss occurs, apart from the initial conversion from numeric-like to string, if needed.
+
+The central value is rounded to match the precision of the uncertainties. With one uncertainty this is unambiguous. With multiple uncertainties, the precision (applied to the central value and all uncertainties for consistency) can be taken from either the largest individual uncertainty or the total uncertainty. The total uncertainty is computed as the quadrature sum of individual uncertainties, assuming them uncorrelated. For asymmetric uncertainties the larger side is used, a conservative but wrong simplification (more complex alternatives would likely also be wrong to varying degrees).
 
 Supported display modes are `terminal`, [(La)TeX](https://www.latex-project.org/), [typst](https://typst.app/), [gnuplot](http://gnuplot.info/).
 
@@ -146,11 +148,11 @@ The final formatting is regulated via different options, provided as members of 
 | `mode = tex`              | `X`              | `-X`                   | display for `(La)TeX` syntax (math mode)                     |
 | `mode = typst`            | `T`              | `-T`                   | display for `typst` syntax (math mode)                       |
 | `mode = gnuplot`          | `G`              | `-G`                   | display for `gnuplot` syntax                                 |
-| `algo = pdg`              | `p`              | `-p`                   | round with the PDG algorithm                                 |
-| `algo = twodigits`        | `t`              | `-t`                   | round to two-digits precision                                |
+| `round = pdg`             | `p`              | `-p`                   | round with the PDG algorithm                                 |
+| `round = twodigits`       | `t`              | `-t`                   | round to two-digits precision                                |
+| `prec = total_err`        | `e`              | `-e`                   | uniformize the precision to the rounding of the total error  |
+| `prec = largest_err`      | `l`              | `-l`                   | uniformize the precision to the largest supplied error       |
 | `symmetrize_errors`       | `s`              | `-s`                   | symmetrize asymmetric errors if they differ by less than 10% |
-| `prec_to_total_err`       | `e`              | `-e`                   | uniformize the precision to the rounding of the total error  |
-| `prec_to_larger_err`      | `l`              | `-l`                   | uniformize the precision to the largest supplied error       |
 | `factorize_powers`        | `F`              | `-F`                   | display with factorized powers of 10                         |
 | `no_utf8`                 | `U`              | `-U`                   | do not use `utf8` chars when displaying to the terminal      |
 | `cdot`                    | `D`              | `-D`                   | use a cdot instead of times symbol for the powers of 10      |
@@ -178,9 +180,9 @@ int main()
         // labels for the uncertainties (optional)
         std::vector<std::string_view> labels = {"(stat)", "(syst)", "(theo)", "(more)"};
         rounder::format_options opts;
-        opts.prec_to_larger_err = true;
-        opts.algo = rounder::format_options::round_algo::twodigits;
         opts.mode = rounder::mode_type::terminal;
+        opts.round = rounder::format_options::round_algo::twodigits;
+        opts.prec = rounder::format_options::prec_algo::largest_error;
         opts.labels = &labels;
 
         // central value as a string_view
