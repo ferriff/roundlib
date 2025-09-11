@@ -31,7 +31,7 @@
 #include <vector>
 
 // line if you wish to remain header-only also with fmt, compile with `-DFMT_HEADER_ONLY`
-#include <fmt/format.h>
+#include <fmt/base.h>
 
 namespace rounder {
 
@@ -244,26 +244,30 @@ inline number quadrature_sum(const std::vector<number> &vec)
         double sum = 0;
         double c   = 0;
         size_t cnt = 0;
-        double dp  = 1.;
+        double pe  = 0.; // previous error (asymmetric case)
         for (const auto &e : vec) {
                 double v = e.to_double();
-                // blindly symmetrize errors (approximation)
-                if (e.sgn != 0) {
-                        ++cnt;
-                        v *= 0.5;
-                        dp *= v;
-                }
                 double y = v * v - c;
-                // correct for the missing double product in the squared average
-                // of asymmetric errors
-                if (cnt % 2 == 0) y += 0.5 * dp;
+                // if the first asymmetric error already summed
+                // was not the larger of the two, take the second
+                if (e.sgn == 0 && cnt % 2 == 1) {
+                        if (fabs(v) < pe) {
+                                ++cnt;
+                                continue;
+                        } else y -= pe * pe;
+                }
                 double t = sum + y;
                 c        = (t - sum) - y;
                 sum      = t;
+                // store the first of the two asymmetric errors
+                if (e.sgn != 0) {
+                        ++cnt;
+                        pe = fabs(v);
+                }
         }
         if (cnt % 2 != 0) {
                 fmt::println("# warning: asymmetric errors do not seem to come in pairs");
-                fmt::println("# warning: the total error computation is wrong.");
+                fmt::println("# warning: the total error computation may be wrong.");
         }
         return number::from_numeric(std::sqrt(sum));
 };
@@ -400,13 +404,15 @@ enum class mode_type { terminal, tex, typst, gnuplot };
 struct format_options {
         mode_type mode;
         enum class round_algo {pdg, twodigits};
-        round_algo algo;
+        round_algo round;
+        enum class prec_algo {largest_error, total_error};
+        prec_algo prec;
         const std::vector<std::string_view>* labels;
 
         // bit-like fields, defaults in the constructor below
         unsigned symmetrize_errors   : 1;
-        unsigned prec_to_total_err   : 1;
-        unsigned prec_to_largest_err : 1;
+        // unsigned prec_to_total_err   : 1;
+        // unsigned prec_to_largest_err : 1;
         unsigned factorize_powers    : 1;
         unsigned no_utf8             : 1;
         unsigned cdot                : 1;
@@ -414,11 +420,12 @@ struct format_options {
 
         constexpr format_options()
         : mode(mode_type::terminal),
-          algo(round_algo::pdg),
+          round(round_algo::pdg),
+          prec(prec_algo::largest_error),
           labels(),
           symmetrize_errors(0),
-          prec_to_total_err(0),
-          prec_to_largest_err(1),
+          // prec_to_total_err(0),
+          // prec_to_largest_err(1),
           factorize_powers(0),
           no_utf8(0),
           cdot(0),
@@ -547,17 +554,17 @@ inline void round(number& central, std::vector<number>& errors, const format_opt
         int prec   = INT_MAX;
 
         number tote;
-        if (opt.prec_to_total_err) {
+        if (opt.prec == format_options::prec_algo::total_error) {
                 tote = detail::quadrature_sum(errors);
-                if (opt.algo == format_options::round_algo::pdg) detail::pdg_round(tote, quiet);
+                if (opt.round == format_options::round_algo::pdg) detail::pdg_round(tote, quiet);
                 else detail::twodig_round(tote, quiet);
                 prec = tote.p;
         }
 
-        if (opt.prec_to_largest_err) {
+        if (opt.prec == format_options::prec_algo::largest_error) {
                 // match the precision of the central value to that of the less precise error
                 prec = INT_MIN;
-                if (opt.algo == format_options::round_algo::pdg) {
+                if (opt.round == format_options::round_algo::pdg) {
                         for (auto &e : errors)
                                 detail::pdg_round(e, quiet);
                 } else {
@@ -571,7 +578,7 @@ inline void round(number& central, std::vector<number>& errors, const format_opt
         if (prec != INT_MAX) {
                 detail::round_to_prec(central, prec);
                 for (auto &e : errors) detail::round_to_prec(e, prec);
-        } else if (opt.algo == format_options::round_algo::pdg) {
+        } else if (opt.round == format_options::round_algo::pdg) {
                 // or round independently to the chosen algorithms
                 detail::pdg_round(central, quiet);
                 for (auto &e : errors) detail::pdg_round(e, quiet);
@@ -650,28 +657,28 @@ struct fmt::formatter<rounder::measurement> {
                 auto end = ctx.end();
 
                 // default
-                opts_.algo = rounder::format_options::round_algo::pdg;
-                opts_.prec_to_largest_err = true;
+                opts_.round = rounder::format_options::round_algo::pdg;
+                opts_.prec = rounder::format_options::prec_algo::largest_error;
                 while (i != end && *i != '}') {
                         switch (*i) {
                         case 'c': // 2‑digit precision, rounded to total (quadrature) error
-                                opts_.algo = rounder::format_options::round_algo::twodigits;
-                                opts_.prec_to_total_err = true;
+                                opts_.round = rounder::format_options::round_algo::twodigits;
+                                opts_.prec = rounder::format_options::prec_algo::total_error;
                                 break;
                         case 'e': // round to the total (quadrature) error
-                                opts_.prec_to_total_err = true;
+                                opts_.prec = rounder::format_options::prec_algo::total_error;
                                 break;
                         case 'l': // round to the larger error
-                                opts_.prec_to_largest_err = true;
+                                opts_.prec = rounder::format_options::prec_algo::largest_error;
                                 break;
                         case 'p': // PDG rounding
-                                opts_.algo = rounder::format_options::round_algo::pdg;
+                                opts_.round = rounder::format_options::round_algo::pdg;
                                 break;
                         case 's': // symmetrise errors when within ±10 %
                                 opts_.symmetrize_errors = true;
                                 break;
                         case 't': // round to two significant digits
-                                opts_.algo = rounder::format_options::round_algo::twodigits;
+                                opts_.round = rounder::format_options::round_algo::twodigits;
                                 break;
                         case 'D': // use “·” (cdot) instead of “×”
                                 opts_.cdot = true;
