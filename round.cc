@@ -1,6 +1,27 @@
+/* Round and format in publication style the central value of a measurement
+ * and its associated uncertainties.
+ *
+ * Copyright © 2025 Federico Ferri (federico.ferri@cea.fr)
+ *
+ * SPDX‑License‑Identifier: GPL-3.0-or-later
+ *
+ *  This program is free software: you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the
+ *  Free Software Foundation, either version 3 of the License, or (at your
+ *  option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 #include <vector>
 
-// line if you wish to remain header-only also with fmt, compile with `make HEADER_ONLY=1`
+// if you wish to remain header-only also with fmt, compile with
+// `make HEADER_ONLY=1`
 #include <fmt/base.h>
 
 #include "roundlib.hpp"
@@ -54,8 +75,8 @@ int main(int argc, char** argv)
         std::vector<std::string_view> labels;
         bool trailing_newline = true;
         // defaults
-        opts.algo                = rounder::format_options::round_algo::pdg;
-        opts.prec_to_largest_err = true;
+        opts.round = rounder::format_options::round_algo::pdg;
+        opts.prec = rounder::format_options::prec_algo::largest_error;
         for (int i = 1; i < argc; ++i) {
                 const char* c = argv[i];
                 if (is_number(c) && !from_stdin) {
@@ -72,23 +93,23 @@ int main(int argc, char** argv)
                                 from_stdin = 1;
                                 break;
                         case 'c': // combined: 2 digits, rounded to the largest uncertainties
-                                opts.algo = rounder::format_options::round_algo::twodigits;
-                                opts.prec_to_largest_err = true;
+                                opts.round = rounder::format_options::round_algo::twodigits;
+                                opts.prec = rounder::format_options::prec_algo::largest_error;
                                 break;
                         case 'e': // round to the total error (quadrature sum of the others, assuming them uncorrelated)
-                                opts.prec_to_total_err = true;
+                                opts.prec = rounder::format_options::prec_algo::total_error;
                                 break;
                         case 'l': // round to the larger error
-                                opts.prec_to_largest_err = true;
+                                opts.prec = rounder::format_options::prec_algo::largest_error;
                                 break;
                         case 'p': // PDG rounding
-                                opts.algo = rounder::format_options::round_algo::pdg;
+                                opts.round = rounder::format_options::round_algo::pdg;
                                 break;
                         case 's': // symmetrize errors when within +/-10%
                                 opts.symmetrize_errors = true;
                                 break;
                         case 't': // round to two significant digits
-                                opts.algo = rounder::format_options::round_algo::twodigits;
+                                opts.round = rounder::format_options::round_algo::twodigits;
                                 break;
                         // case 'v': // verbose
                         //         _o |= kVerbose;
