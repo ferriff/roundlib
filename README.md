@@ -1,4 +1,4 @@
-# roundlib
+# roundlib - A scientific rounding library
 
 A header‑only `C++` library to round and format for display the central value of a measurement and its associated uncertainties.
 
