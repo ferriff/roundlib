@@ -51,7 +51,7 @@ int main()
         fmt::println("{:tlT}", m);
 
         // round with the PDG algorithm (p),
-        // uniformize the precision to the total uncertainty (l),
+        // uniformize the precision to the total uncertainty (e),
         // symmetrize upper/lower uncertainty if within +/-10% (s),
         // display in (La)TeX mode (X)
         auto s = fmt::format("{:pesX}", m);
